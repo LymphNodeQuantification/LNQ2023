@@ -1,3 +1,4 @@
+from pathlib import Path
 
 import SimpleITK
 import numpy as np
@@ -12,6 +13,8 @@ from evalutils.validators import (
 class Lnq2023(SegmentationAlgorithm):
     def __init__(self):
         super().__init__(
+            input_path=Path('/input/images/mediastinal-ct/'),
+            output_path=Path('/output/images/mediastinal-lymph-node-segmentation/'),
             validators=dict(
                 input_image=(
                     UniqueImagesValidator(),
