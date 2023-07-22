@@ -19,6 +19,8 @@ RUN python -m piptools sync requirements.txt
 
 COPY --chown=user:user ground-truth /opt/app/ground-truth
 COPY --chown=user:user evaluation.py /opt/app/
+COPY --chown=user:user jsonloader.py /opt/app/
+
 
 ENTRYPOINT [ "python", "-m", "evaluation" ]
 

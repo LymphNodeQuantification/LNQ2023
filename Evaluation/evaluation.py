@@ -1,5 +1,8 @@
 import SimpleITK
 
+from pathlib import Path
+from jsonloader import load_predictions_json
+
 from evalutils import ClassificationEvaluation
 from evalutils.io import SimpleITKLoader
 from evalutils.validators import (
@@ -17,6 +20,7 @@ class Lnq2023(ClassificationEvaluation):
                 UniqueImagesValidator(),
             ),
         )
+        self.mapping_dict = load_predictions_json(Path("/input/predictions.json"))
 
     def score_case(self, *, idx, case):
         gt_path = case["path_ground_truth"]
@@ -44,16 +48,26 @@ class Lnq2023(ClassificationEvaluation):
         overlap_measures.Execute(gt, pred)
 
         return {
-            'FalseNegativeError': overlap_measures.GetFalseNegativeError(),
-            'FalsePositiveError': overlap_measures.GetFalsePositiveError(),
-            'MeanOverlap': overlap_measures.GetMeanOverlap(),
-            'UnionOverlap': overlap_measures.GetUnionOverlap(),
-            'VolumeSimilarity': overlap_measures.GetVolumeSimilarity(),
-            'JaccardCoefficient': overlap_measures.GetJaccardCoefficient(),
             'DiceCoefficient': overlap_measures.GetDiceCoefficient(),
             'pred_fname': pred_path.name,
             'gt_fname': gt_path.name,
         }
+
+    def load(self):
+        self._ground_truth_cases = self._load_cases(folder=self._ground_truth_path)
+        self._predictions_cases = self._load_cases(folder=self._predictions_path)
+
+        self._predictions_cases["ground_truth_path"] = [
+            self._ground_truth_path / self.mapping_dict[Path(path).name]
+            for path in self._predictions_cases.path
+        ]
+
+        self._ground_truth_cases = self._ground_truth_cases.sort_values(
+            "path"
+        ).reset_index(drop=True)
+        self._predictions_cases = self._predictions_cases.sort_values(
+            "ground_truth_path"
+        ).reset_index(drop=True)
 
 
 if __name__ == "__main__":
