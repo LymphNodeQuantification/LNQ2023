@@ -7,10 +7,13 @@ from pprint import pprint
 
 import SimpleITK
 
-INPUT_DIRECTORY = "test_submission"  # You can change this to "test_submission" to run outside Docker, but remember to change it back to /input before building your container
-OUTPUT_DIRECTORY = "output"  # You can also change this to a local directory to run outside Docker, but remember to change it back to /output
-# INPUT_DIRECTORY = "/input"  # You can change this to "test_submission" to run outside Docker, but remember to change it back to /input before building your container
-# OUTPUT_DIRECTORY = "/output"  # You can also change this to a local directory to run outside Docker, but remember to change it back to /output
+# for local test of the evaluation code uncomment the following two lines
+# INPUT_DIRECTORY = "test_submission"
+# OUTPUT_DIRECTORY = "output"
+
+# for building docker for Grand-Challenge website uncomment the following two lines
+INPUT_DIRECTORY = "/input"
+OUTPUT_DIRECTORY = "/output"
 
 
 def main():
@@ -20,53 +23,36 @@ def main():
     predictions = read_predictions()
 
     for job in predictions:
-        # We now iterate over each algorithm job for this submission
-        # Note that the jobs are not in any order! We work that out from predictions.json
-        # This corresponds to one archive item in the archive
         ct = get_image_name(values=job["inputs"], slug="mediastinal-ct")
 
-        # Parse the filenames to get the batch ID, you could cross-check with the others
         batch_id = ct.split("-")[2]
         pprint(job)
         pprint(f"Processing batch {batch_id}")
         pprint((ct))
 
-        # Now we can get the locations of users inference output for this archive item
         segmentation_location = get_file_location(job_pk=job["pk"], values=job["outputs"],
                                                   slug="mediastinal-lymph-node")
-        # pprint((segmentation_location,))
 
-        # Now read the users generated predictions for these inputs
         segmentation = load_image(location=segmentation_location)
-        # pprint(segmentation)
+        pprint(segmentation)
 
-        # Now you would need to load your ground truth, include it in the evaluation container
         ground_truth = SimpleITK.ReadImage(os.path.join('ground_truth', ct.replace('-ct', '-seg')))
         pprint(ground_truth)
 
-        # And here you need to compare the predictions with the ground truth and generate a score for this case
-        # Taken from your own repo
-
-        # For now, perfect scores:
-        # metrics["case"][batch_id] = {"my_metric": 1}
-        # # Cast to the same type
         caster = SimpleITK.CastImageFilter()
         caster.SetOutputPixelType(SimpleITK.sitkUInt8)
         caster.SetNumberOfThreads(1)
         gt = caster.Execute(ground_truth)
         pred = caster.Execute(segmentation)
-        #
-        # # Score the case
+
+        # Score the case
         overlap_measures = SimpleITK.LabelOverlapMeasuresImageFilter()
         overlap_measures.SetNumberOfThreads(1)
         overlap_measures.Execute(gt, pred)
-        #
+
         metrics["case"][batch_id] = {'DiceCoefficient': overlap_measures.GetDiceCoefficient(),}
-        # metrics["case"][batch_id] = 1
 
-        print("")
-
-    # Now generate an overall score
+    # generate an aggregate score
     metrics["aggregates"] = {"DiceCoefficient": mean(batch["DiceCoefficient"] for batch in metrics["case"].values())}
 
     pprint(metrics)
@@ -77,16 +63,15 @@ def main():
 
 
 def print_inputs():
-    # Just for convenience, in the logs you can then see what files you have to work with
     input_files = [str(x) for x in Path(INPUT_DIRECTORY).rglob("*") if x.is_file()]
 
+    print("-"*100)
     print("Input Files:")
     pprint(input_files)
-    print("")
+    print("-"*100)
 
 
 def read_predictions():
-    # The predictions file tells us the location of the users predictions
     with open(f"{INPUT_DIRECTORY}/predictions.json") as f:
         return json.loads(f.read())
 

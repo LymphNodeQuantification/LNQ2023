@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import SimpleITK
-import numpy as np
 
 from evalutils import SegmentationAlgorithm
 from evalutils.validators import (
