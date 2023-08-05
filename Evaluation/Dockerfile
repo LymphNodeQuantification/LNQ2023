@@ -1,27 +1,18 @@
 FROM python:3.9-slim
 
+ENV PYTHONUNBUFFERED 1
+
+WORKDIR /tmp
+
 RUN groupadd -r user && useradd -m --no-log-init -r -g user user
-
-RUN mkdir -p /opt/app /input /output \
-    && chown user:user /opt/app /input /output
-
 USER user
-WORKDIR /opt/app
 
-ENV PATH="/home/user/.local/bin:${PATH}"
+COPY --chown=user:user ground_truth /tmp/ground_truth
 
-RUN python -m pip install --user -U pip && python -m pip install --user pip-tools
+COPY --chown=user:user requirements.txt /tmp
 
+RUN python3 -m pip install -rrequirements.txt
 
+COPY --chown=user:user evaluation.py /tmp
 
-COPY --chown=user:user requirements.txt /opt/app/
-RUN python -m piptools sync requirements.txt
-
-COPY --chown=user:user ground-truth /opt/app/ground-truth
-COPY --chown=user:user evaluation.py /opt/app/
-COPY --chown=user:user jsonloader.py /opt/app/
-
-
-ENTRYPOINT [ "python", "-m", "evaluation" ]
-
-
+ENTRYPOINT ["python", "evaluation.py"]
