@@ -1,0 +1,140 @@
+[
+  {
+    "pk": "3c82c972-5285-4f02-b5d4-00c1d0a5bd8d",
+    "inputs": [
+      {
+        "pk": 1684416,
+        "file": null,
+        "image": {
+          "pk": "644ba9df-c5df-43d2-bbe6-73ce2e94e556",
+          "name": "lnq2023-val-0000-ct.nrrd"
+        },
+        "value": null,
+        "interface": {
+          "pk": 362,
+          "kind": "Image",
+          "slug": "mediastinal-ct",
+          "title": "Mediastinal CT",
+          "super_kind": "Image",
+          "description": "3D CT image of the patient containing mediastinal region",
+          "default_value": null,
+          "look_up_table": null,
+          "relative_path": "images/mediastinal-ct",
+          "overlay_segments": []
+        }
+      }
+    ],
+    "status": "Succeeded",
+    "api_url": "https://grand-challenge.org/api/v1/algorithms/jobs/3c82c972-5285-4f02-b5d4-00c1d0a5bd8d/",
+    "outputs": [
+      {
+        "pk": 1687949,
+        "file": null,
+        "image": {
+          "pk": "d146026e-0e0d-4a0d-9038-c1a9363c5910",
+          "name": "644ba9df-c5df-43d2-bbe6-73ce2e94e556.mha"
+        },
+        "value": null,
+        "interface": {
+          "pk": 363,
+          "kind": "Segmentation",
+          "slug": "mediastinal-lymph-node",
+          "title": "Mediastinal Lymph Node",
+          "super_kind": "Image",
+          "description": "Anatomical mask where value 0 represents the background and value 1 the Mediastinal Lymph Node",
+          "default_value": null,
+          "look_up_table": null,
+          "relative_path": "images/mediastinal-lymph-node-segmentation",
+          "overlay_segments": [
+            {
+              "name": "Background",
+              "visible": true,
+              "voxel_value": 0
+            },
+            {
+              "name": "Mediastinal Lymph Node",
+              "visible": true,
+              "voxel_value": 1
+            }
+          ]
+        }
+      }
+    ],
+    "started_at": "2023-08-01T03:55:22.004731Z",
+    "completed_at": "2023-08-01T03:55:51.004731Z",
+    "view_content": {},
+    "algorithm_image": "Algorithm image 971be891-393a-47ff-b910-896d64e47774 for Test",
+    "algorithm_title": "Test",
+    "hanging_protocol": null,
+    "rendered_result_text": ""
+  },
+  {
+    "pk": "55598b1d-9592-4f6f-bb84-13a19c61fe9f",
+    "inputs": [
+      {
+        "pk": 1684415,
+        "file": null,
+        "image": {
+          "pk": "3aa9014b-2cd4-44f8-999b-6c38c615334d",
+          "name": "lnq2023-val-0001-ct.nrrd"
+        },
+        "value": null,
+        "interface": {
+          "pk": 362,
+          "kind": "Image",
+          "slug": "mediastinal-ct",
+          "title": "Mediastinal CT",
+          "super_kind": "Image",
+          "description": "3D CT image of the patient containing mediastinal region",
+          "default_value": null,
+          "look_up_table": null,
+          "relative_path": "images/mediastinal-ct",
+          "overlay_segments": []
+        }
+      }
+    ],
+    "status": "Succeeded",
+    "api_url": "https://grand-challenge.org/api/v1/algorithms/jobs/55598b1d-9592-4f6f-bb84-13a19c61fe9f/",
+    "outputs": [
+      {
+        "pk": 1687909,
+        "file": null,
+        "image": {
+          "pk": "46badcee-e36d-4f64-a8af-3ed1ee2c4b3e",
+          "name": "3aa9014b-2cd4-44f8-999b-6c38c615334d.mha"
+        },
+        "value": null,
+        "interface": {
+          "pk": 363,
+          "kind": "Segmentation",
+          "slug": "mediastinal-lymph-node",
+          "title": "Mediastinal Lymph Node",
+          "super_kind": "Image",
+          "description": "Anatomical mask where value 0 represents the background and value 1 the Mediastinal Lymph Node",
+          "default_value": null,
+          "look_up_table": null,
+          "relative_path": "images/mediastinal-lymph-node-segmentation",
+          "overlay_segments": [
+            {
+              "name": "Background",
+              "visible": true,
+              "voxel_value": 0
+            },
+            {
+              "name": "Mediastinal Lymph Node",
+              "visible": true,
+              "voxel_value": 1
+            }
+          ]
+        }
+      }
+    ],
+    "started_at": "2023-08-01T03:46:28.838519Z",
+    "completed_at": "2023-08-01T03:46:57.838519Z",
+    "view_content": {},
+    "algorithm_image": "Algorithm image 971be891-393a-47ff-b910-896d64e47774 for Test",
+    "algorithm_title": "Test",
+    "hanging_protocol": null,
+    "rendered_result_text": ""
+  }
+]

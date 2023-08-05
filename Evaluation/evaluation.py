@@ -11,7 +11,7 @@ import SimpleITK
 # INPUT_DIRECTORY = "test_submission"
 # OUTPUT_DIRECTORY = "output"
 
-# for building docker for Grand-Challenge website uncomment the following two lines
+# for grand-challenge evaluation docker website uncomment the following two lines
 INPUT_DIRECTORY = "/input"
 OUTPUT_DIRECTORY = "/output"
 
