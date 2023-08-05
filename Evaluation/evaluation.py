@@ -5,7 +5,8 @@ from statistics import mean
 from pathlib import Path
 from pprint import pprint
 
-import SimpleITK
+import numpy as np
+import SimpleITK as sitk
 
 # for local test of the evaluation code uncomment the following two lines
 # INPUT_DIRECTORY = "test_submission"
@@ -14,6 +15,60 @@ import SimpleITK
 # for grand-challenge evaluation docker website uncomment the following two lines
 INPUT_DIRECTORY = "/input"
 OUTPUT_DIRECTORY = "/output"
+
+
+def surface_mean_distance(reference_segmentation, seg):
+    """
+    Compute symmetric surface distances and take the mean.
+    """
+    reference_surface = sitk.LabelContour(reference_segmentation)
+    reference_distance_map = sitk.Abs(
+        sitk.SignedMaurerDistanceMap(
+            reference_surface, squaredDistance=False, useImageSpacing=True
+        )
+    )
+
+    statistics_image_filter = sitk.StatisticsImageFilter()
+    # Get the number of pixels in the reference surface by counting all pixels that are 1.
+    statistics_image_filter.Execute(reference_surface)
+    num_reference_surface_pixels = int(statistics_image_filter.GetSum())
+
+    segmented_surface = sitk.LabelContour(seg)
+    segmented_distance_map = sitk.Abs(
+        sitk.SignedMaurerDistanceMap(
+            segmented_surface, squaredDistance=False, useImageSpacing=True
+        )
+    )
+
+    # Multiply the binary surface segmentations with the distance maps. The resulting distance
+    # maps contain non-zero values only on the surface (they can also contain zero on the surface)
+    seg2ref_distance_map = reference_distance_map * sitk.Cast(
+        segmented_surface, sitk.sitkFloat32
+    )
+    ref2seg_distance_map = segmented_distance_map * sitk.Cast(
+        reference_surface, sitk.sitkFloat32
+    )
+
+    # Get the number of pixels in the reference surface by counting all pixels that are 1.
+    statistics_image_filter.Execute(segmented_surface)
+    num_segmented_surface_pixels = int(statistics_image_filter.GetSum())
+
+    # Get all non-zero distances and then add zero distances if required.
+    seg2ref_distance_map_arr = sitk.GetArrayViewFromImage(seg2ref_distance_map)
+    seg2ref_distances = list(seg2ref_distance_map_arr[seg2ref_distance_map_arr != 0])
+    seg2ref_distances = seg2ref_distances + list(
+        np.zeros(num_segmented_surface_pixels - len(seg2ref_distances))
+    )
+
+    ref2seg_distance_map_arr = sitk.GetArrayViewFromImage(ref2seg_distance_map)
+    ref2seg_distances = list(ref2seg_distance_map_arr[ref2seg_distance_map_arr != 0])
+    ref2seg_distances = ref2seg_distances + list(
+        np.zeros(num_reference_surface_pixels - len(ref2seg_distances))
+    )
+
+    # ref2seg_distances = ref2seg_distances
+    all_surface_distances = np.mean(seg2ref_distances) / 2 + np.mean(ref2seg_distances) / 2
+    return all_surface_distances
 
 
 def main():
@@ -36,24 +91,27 @@ def main():
         segmentation = load_image(location=segmentation_location)
         pprint(segmentation)
 
-        ground_truth = SimpleITK.ReadImage(os.path.join('ground_truth', ct.replace('-ct', '-seg')))
+        ground_truth = sitk.ReadImage(os.path.join('ground_truth', ct.replace('-ct', '-seg')))
         pprint(ground_truth)
 
-        caster = SimpleITK.CastImageFilter()
-        caster.SetOutputPixelType(SimpleITK.sitkUInt8)
+        caster = sitk.CastImageFilter()
+        caster.SetOutputPixelType(sitk.sitkUInt8)
         caster.SetNumberOfThreads(1)
         gt = caster.Execute(ground_truth)
         pred = caster.Execute(segmentation)
 
         # Score the case
-        overlap_measures = SimpleITK.LabelOverlapMeasuresImageFilter()
+        overlap_measures = sitk.LabelOverlapMeasuresImageFilter()
         overlap_measures.SetNumberOfThreads(1)
         overlap_measures.Execute(gt, pred)
 
-        metrics["case"][batch_id] = {'DiceCoefficient': overlap_measures.GetDiceCoefficient(),}
+        metrics["case"][batch_id] = {'DiceCoefficient': overlap_measures.GetDiceCoefficient(),
+                                     'AverageSymmetricSurfaceDistance': surface_mean_distance(gt, pred)}
 
     # generate an aggregate score
-    metrics["aggregates"] = {"DiceCoefficient": mean(batch["DiceCoefficient"] for batch in metrics["case"].values())}
+    metrics["aggregates"] = {"DiceCoefficient": mean(batch["DiceCoefficient"] for batch in metrics["case"].values()),
+                             "AverageSymmetricSurfaceDistance": mean(batch["AverageSymmetricSurfaceDistance"]
+                                                                     for batch in metrics["case"].values())}
 
     pprint(metrics)
 
@@ -111,7 +169,7 @@ def load_image(*, location, extension="mha"):
     print(location, mha_files)
     if len(mha_files) == 1:
         mha_file = mha_files.pop()
-        return SimpleITK.ReadImage(mha_file)
+        return sitk.ReadImage(mha_file)
     elif len(mha_files) > 1:
         raise RuntimeError(
             f"More than one mha file was found in {location!r}"
