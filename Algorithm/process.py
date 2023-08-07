@@ -26,7 +26,6 @@ class Lnq2023(SegmentationAlgorithm):
         )
 
     def predict(self, *, input_image: SimpleITK.Image) -> SimpleITK.Image:
-        print('abc')
         # TODO: add your algorithm here
         return SimpleITK.BinaryThreshold(image1=input_image, lowerThreshold=2, insideValue=1, outsideValue=0)
 
